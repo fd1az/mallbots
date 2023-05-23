@@ -13,10 +13,10 @@ services:
     env_file:
       - docker/.env
     depends_on:
-      - postgres
-    command: [ "./wait-for", "postgres:5432", "--", "/mallbots/monolith" ]
-  postgres:
-    container_name: postgres
+      - mallbotsdb
+    command: [ "./wait-for", "mallbotsdb:5432", "--", "/mallbots/monolith" ]
+  mallbotsdb:
+    container_name: mallbotsdb
     hostname: postgres
     image: postgres:12-alpine
     restart: always
