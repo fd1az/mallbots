@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 
-	"github.com/fd1az/mallbots/internal/ddd"
 	"github.com/fd1az/mallbots/stores/internal/domain"
 )
 
@@ -12,34 +11,25 @@ type EnableParticipation struct {
 }
 
 type EnableParticipationHandler struct {
-	stores          domain.StoreRepository
-	domainPublisher ddd.EventPublisher
+	stores domain.StoreRepository
 }
 
-func NewEnableParticipationHandler(stores domain.StoreRepository, domainPublisher ddd.EventPublisher) EnableParticipationHandler {
+func NewEnableParticipationHandler(stores domain.StoreRepository) EnableParticipationHandler {
 	return EnableParticipationHandler{
-		stores:          stores,
-		domainPublisher: domainPublisher,
+		stores: stores,
 	}
 }
 
 func (h EnableParticipationHandler) EnableParticipation(ctx context.Context, cmd EnableParticipation) error {
-	store, err := h.stores.Find(ctx, cmd.ID)
+	store, err := h.stores.Load(ctx, cmd.ID)
+
 	if err != nil {
 		return err
 	}
-
-	if err = store.EnableParticipation(); err != nil {
+	err = store.EnableParticipation()
+	if err != nil {
 		return err
 	}
+	return h.stores.Save(ctx, store)
 
-	if err = h.stores.Update(ctx, store); err != nil {
-		return err
-	}
-
-	if err = h.domainPublisher.Publish(ctx, store.GetEvents()...); err != nil {
-		return err
-	}
-
-	return nil
 }

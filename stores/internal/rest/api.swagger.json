@@ -393,6 +393,9 @@
         }
       }
     },
+    "storespbDecreaseProductPriceResponse": {
+      "type": "object"
+    },
     "storespbDisableParticipationResponse": {
       "type": "object"
     },
@@ -451,6 +454,9 @@
         }
       }
     },
+    "storespbIncreaseProductPriceResponse": {
+      "type": "object"
+    },
     "storespbProduct": {
       "type": "object",
       "properties": {
@@ -474,6 +480,12 @@
           "format": "double"
         }
       }
+    },
+    "storespbRebrandProductResponse": {
+      "type": "object"
+    },
+    "storespbRebrandStoreResponse": {
+      "type": "object"
     },
     "storespbRemoveProductResponse": {
       "type": "object"
