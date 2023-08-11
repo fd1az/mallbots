@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/fd1az/mallbots/customers/internal/domain"
-	"github.com/fd1az/mallbots/internal/ddd"
 )
 
 type CustomerRepository struct {
@@ -26,7 +25,14 @@ func NewCustomerRepository(tableName string, db *sql.DB) CustomerRepository {
 func (r CustomerRepository) Save(ctx context.Context, customer *domain.Customer) error {
 	const query = "INSERT INTO %s (id, name, sms_number, enabled) VALUES ($1, $2, $3, $4)"
 
-	_, err := r.db.ExecContext(ctx, r.table(query), customer.ID, customer.Name, customer.SmsNumber, customer.Enabled)
+	_, err := r.db.ExecContext(
+		ctx,
+		r.table(query),
+		customer.ID,
+		customer.Name,
+		customer.SmsNumber,
+		customer.Enabled,
+	)
 
 	return err
 }
@@ -34,13 +40,10 @@ func (r CustomerRepository) Save(ctx context.Context, customer *domain.Customer)
 func (r CustomerRepository) Find(ctx context.Context, customerID string) (*domain.Customer, error) {
 	const query = "SELECT name, sms_number, enabled FROM %s WHERE id = $1 LIMIT 1"
 
-	customer := &domain.Customer{
-		AggregateBase: ddd.AggregateBase{
-			ID: customerID,
-		},
-	}
+	customer := domain.NewCustomer(customerID)
 
-	err := r.db.QueryRowContext(ctx, r.table(query), customerID).Scan(&customer.Name, &customer.SmsNumber, &customer.Enabled)
+	err := r.db.QueryRowContext(ctx, r.table(query), customerID).
+		Scan(&customer.Name, &customer.SmsNumber, &customer.Enabled)
 
 	return customer, err
 }
@@ -48,7 +51,14 @@ func (r CustomerRepository) Find(ctx context.Context, customerID string) (*domai
 func (r CustomerRepository) Update(ctx context.Context, customer *domain.Customer) error {
 	const query = "UPDATE %s SET name = $2, sms_number = $3, enabled = $4 WHERE id = $1"
 
-	_, err := r.db.ExecContext(ctx, r.table(query), customer.ID, customer.Name, customer.SmsNumber, customer.Enabled)
+	_, err := r.db.ExecContext(
+		ctx,
+		r.table(query),
+		customer.ID,
+		customer.Name,
+		customer.SmsNumber,
+		customer.Enabled,
+	)
 
 	return err
 }

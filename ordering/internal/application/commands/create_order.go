@@ -5,7 +5,6 @@ import (
 
 	"github.com/stackus/errors"
 
-	"github.com/fd1az/mallbots/internal/ddd"
 	"github.com/fd1az/mallbots/ordering/internal/domain"
 )
 
@@ -13,29 +12,27 @@ type CreateOrder struct {
 	ID         string
 	CustomerID string
 	PaymentID  string
-	Items      []*domain.Item
+	Items      []domain.Item
 }
 
 type CreateOrderHandler struct {
-	orders          domain.OrderRepository
-	customers       domain.CustomerRepository
-	payments        domain.PaymentRepository
-	shopping        domain.ShoppingRepository
-	domainPublisher ddd.EventPublisher
+	orders    domain.OrderRepository
+	customers domain.CustomerRepository
+	payments  domain.PaymentRepository
+	shopping  domain.ShoppingRepository
 }
 
-func NewCreateOrderHandler(orders domain.OrderRepository, customers domain.CustomerRepository, payments domain.PaymentRepository, shopping domain.ShoppingRepository, domainPublisher ddd.EventPublisher) CreateOrderHandler {
+func NewCreateOrderHandler(orders domain.OrderRepository, customers domain.CustomerRepository, payments domain.PaymentRepository, shopping domain.ShoppingRepository) CreateOrderHandler {
 	return CreateOrderHandler{
-		orders:          orders,
-		customers:       customers,
-		payments:        payments,
-		shopping:        shopping,
-		domainPublisher: domainPublisher,
+		orders:    orders,
+		customers: customers,
+		payments:  payments,
+		shopping:  shopping,
 	}
 }
 
 func (h CreateOrderHandler) CreateOrder(ctx context.Context, cmd CreateOrder) error {
-	order, err := domain.CreateOrder(cmd.ID, cmd.CustomerID, cmd.PaymentID, cmd.Items)
+	order, err := h.orders.Load(ctx, cmd.ID)
 	if err != nil {
 		return errors.Wrap(err, "create order command")
 	}
@@ -51,18 +48,19 @@ func (h CreateOrderHandler) CreateOrder(ctx context.Context, cmd CreateOrder) er
 	}
 
 	// scheduleShopping
-	if order.ShoppingID, err = h.shopping.Create(ctx, order); err != nil {
+	var shoppingID string
+	if shoppingID, err = h.shopping.Create(ctx, cmd.ID, cmd.Items); err != nil {
 		return errors.Wrap(err, "order shopping scheduling")
+	}
+
+	err = order.CreateOrder(cmd.ID, cmd.CustomerID, cmd.PaymentID, shoppingID, cmd.Items)
+	if err != nil {
+		return errors.Wrap(err, "create order command")
 	}
 
 	// orderCreation
 	if err = h.orders.Save(ctx, order); err != nil {
 		return errors.Wrap(err, "order creation")
-	}
-
-	// publish domain events
-	if err = h.domainPublisher.Publish(ctx, order.GetEvents()...); err != nil {
-		return err
 	}
 
 	return nil

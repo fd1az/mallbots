@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"github.com/fd1az/mallbots/depot/internal/application"
 	"github.com/fd1az/mallbots/depot/internal/domain"
 	"github.com/fd1az/mallbots/internal/ddd"
 )
 
-func RegisterOrderHandlers(orderHandlers application.DomainEventHandlers, domainSubscriber ddd.EventSubscriber) {
-	domainSubscriber.Subscribe(domain.ShoppingListCompleted{}, orderHandlers.OnShoppingListCompleted)
+func RegisterOrderHandlers(
+	orderHandlers ddd.EventHandler[ddd.AggregateEvent],
+	domainSubscriber ddd.EventSubscriber[ddd.AggregateEvent],
+) {
+	domainSubscriber.Subscribe(domain.ShoppingListCompletedEvent, orderHandlers)
 }

@@ -13,17 +13,23 @@ type CompleteShoppingList struct {
 
 type CompleteShoppingListHandler struct {
 	shoppingLists   domain.ShoppingListRepository
-	domainPublisher ddd.EventPublisher
+	domainPublisher ddd.EventPublisher[ddd.AggregateEvent]
 }
 
-func NewCompleteShoppingListHandler(shoppingLists domain.ShoppingListRepository, domainPublisher ddd.EventPublisher) CompleteShoppingListHandler {
+func NewCompleteShoppingListHandler(
+	shoppingLists domain.ShoppingListRepository,
+	domainPublisher ddd.EventPublisher[ddd.AggregateEvent],
+) CompleteShoppingListHandler {
 	return CompleteShoppingListHandler{
 		shoppingLists:   shoppingLists,
 		domainPublisher: domainPublisher,
 	}
 }
 
-func (h CompleteShoppingListHandler) CompleteShoppingList(ctx context.Context, cmd CompleteShoppingList) error {
+func (h CompleteShoppingListHandler) CompleteShoppingList(
+	ctx context.Context,
+	cmd CompleteShoppingList,
+) error {
 	list, err := h.shoppingLists.Find(ctx, cmd.ID)
 	if err != nil {
 		return err
@@ -38,7 +44,7 @@ func (h CompleteShoppingListHandler) CompleteShoppingList(ctx context.Context, c
 	}
 
 	// publish domain events
-	if err = h.domainPublisher.Publish(ctx, list.GetEvents()...); err != nil {
+	if err = h.domainPublisher.Publish(ctx, list.Events()...); err != nil {
 		return err
 	}
 

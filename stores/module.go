@@ -35,7 +35,11 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 		pg.NewSnapshotStore("stores.snapshots", mono.DB(), reg),
 	)
 	stores := es.NewAggregateRepository[*domain.Store](domain.StoreAggregate, reg, aggregateStore)
-	products := es.NewAggregateRepository[*domain.Product](domain.ProductAggregate, reg, aggregateStore)
+	products := es.NewAggregateRepository[*domain.Product](
+		domain.ProductAggregate,
+		reg,
+		aggregateStore,
+	)
 	catalog := postgres.NewCatalogRepository("stores.products", mono.DB())
 	mall := postgres.NewMallRepository("stores.stores", mono.DB())
 
@@ -63,6 +67,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) error {
 	if err := rest.RegisterSwagger(mono.Mux()); err != nil {
 		return err
 	}
+
 	handlers.RegisterCatalogHandlers(catalogHandlers, domainDispatcher)
 	handlers.RegisterMallHandlers(mallHandlers, domainDispatcher)
 

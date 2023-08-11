@@ -21,7 +21,10 @@ type (
 		CompleteShoppingList(ctx context.Context, cmd commands.CompleteShoppingList) error
 	}
 	Queries interface {
-		GetShoppingList(ctx context.Context, query queries.GetShoppingList) (*domain.ShoppingList, error)
+		GetShoppingList(
+			ctx context.Context,
+			query queries.GetShoppingList,
+		) (*domain.ShoppingList, error)
 	}
 
 	Application struct {
@@ -41,15 +44,32 @@ type (
 
 var _ App = (*Application)(nil)
 
-func New(shoppingLists domain.ShoppingListRepository, stores domain.StoreRepository, products domain.ProductRepository,
-	domainPublisher ddd.EventPublisher,
+func New(
+	shoppingLists domain.ShoppingListRepository,
+	stores domain.StoreRepository,
+	products domain.ProductRepository,
+	domainPublisher ddd.EventPublisher[ddd.AggregateEvent],
 ) *Application {
 	return &Application{
 		appCommands: appCommands{
-			CreateShoppingListHandler:   commands.NewCreateShoppingListHandler(shoppingLists, stores, products, domainPublisher),
-			CancelShoppingListHandler:   commands.NewCancelShoppingListHandler(shoppingLists, domainPublisher),
-			AssignShoppingListHandler:   commands.NewAssignShoppingListHandler(shoppingLists, domainPublisher),
-			CompleteShoppingListHandler: commands.NewCompleteShoppingListHandler(shoppingLists, domainPublisher),
+			CreateShoppingListHandler: commands.NewCreateShoppingListHandler(
+				shoppingLists,
+				stores,
+				products,
+				domainPublisher,
+			),
+			CancelShoppingListHandler: commands.NewCancelShoppingListHandler(
+				shoppingLists,
+				domainPublisher,
+			),
+			AssignShoppingListHandler: commands.NewAssignShoppingListHandler(
+				shoppingLists,
+				domainPublisher,
+			),
+			CompleteShoppingListHandler: commands.NewCompleteShoppingListHandler(
+				shoppingLists,
+				domainPublisher,
+			),
 		},
 		appQueries: appQueries{
 			GetShoppingListHandler: queries.NewGetShoppingListHandler(shoppingLists),

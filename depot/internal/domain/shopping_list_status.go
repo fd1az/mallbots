@@ -13,7 +13,11 @@ const (
 
 func (s ShoppingListStatus) String() string {
 	switch s {
-	case ShoppingListIsAvailable, ShoppingListIsAssigned, ShoppingListIsActive, ShoppingListIsCompleted, ShoppingListIsCanceled:
+	case ShoppingListIsAvailable,
+		ShoppingListIsAssigned,
+		ShoppingListIsActive,
+		ShoppingListIsCompleted,
+		ShoppingListIsCanceled:
 		return string(s)
 	default:
 		return ""
